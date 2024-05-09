@@ -33,9 +33,8 @@ var port = process.env.PORT || 3001;
 app.use((0, import_cors.default)());
 app.use(import_body_parser.default.json());
 app.use(import_body_parser.default.urlencoded({ extended: true }));
-app.post("/send-email", async (req, res) => {
-  const { name, email, phone, aparelho } = req.body;
-  let transporter = import_nodemailer.default.createTransport({
+var createTransporter = () => {
+  return import_nodemailer.default.createTransport({
     host: "smtp-mail.outlook.com",
     // Servidor SMTP do Outlook
     port: 587,
@@ -49,23 +48,115 @@ app.post("/send-email", async (req, res) => {
       // Sua senha do Outlook
     }
   });
-  let mailOptions = {
+};
+var sendEmailWithDelay = (transporter, mailOptions, res) => {
+  setTimeout(async () => {
+    try {
+      await transporter.sendMail(mailOptions);
+      res.send("Email enviado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao enviar email:", error);
+      res.status(500).send("Erro ao enviar email.");
+    }
+  }, 5 * 60 * 1e3);
+};
+app.post("/send-email-lg", async (req, res) => {
+  const { name, email, phone, aparelho } = req.body;
+  const transporter = createTransporter();
+  const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.DESTINATION_EMAIL,
     // Seu e-mail de destino
-    subject: "Novo Agendamento",
+    subject: "Novo Agendamento LG",
     text: `Nome: ${name}
 E-mail: ${email}
 Telefone: ${phone}
 Aparelho: ${aparelho}`
   };
-  try {
-    await transporter.sendMail(mailOptions);
-    res.send("Email enviado com sucesso!");
-  } catch (error) {
-    console.error("Erro ao enviar email:", error);
-    res.status(500).send("Erro ao enviar email.");
-  }
+  sendEmailWithDelay(transporter, mailOptions, res);
+});
+app.post("/complete-appointment-lg", async (req, res) => {
+  const {
+    idNumber,
+    cep,
+    address,
+    complement,
+    number,
+    neighborhood,
+    city,
+    defect,
+    usage,
+    visitDate,
+    visitPeriod
+  } = req.body;
+  const transporter = createTransporter();
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: process.env.DESTINATION_EMAIL,
+    // Seu e-mail de destino
+    subject: "Dados do Atendimento LG",
+    text: `N\xFAmero de Atendimento: ${idNumber}
+CEP: ${cep}
+Endere\xE7o: ${address}
+Complemento: ${complement}
+N\xFAmero: ${number}
+Bairro: ${neighborhood}
+Cidade: ${city}
+Defeito: ${defect}
+Uso: ${usage}
+Data da Visita: ${visitDate}
+Per\xEDodo da Visita: ${visitPeriod}`
+  };
+  sendEmailWithDelay(transporter, mailOptions, res);
+});
+app.post("/send-email-samsung", async (req, res) => {
+  const { name, email, phone, aparelho } = req.body;
+  const transporter = createTransporter();
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: process.env.DESTINATION_EMAIL,
+    // Seu e-mail de destino
+    subject: "Novo Agendamento Samsung",
+    text: `Nome: ${name}
+E-mail: ${email}
+Telefone: ${phone}
+Aparelho: ${aparelho}`
+  };
+  sendEmailWithDelay(transporter, mailOptions, res);
+});
+app.post("/complete-appointment-samsung", async (req, res) => {
+  const {
+    idNumber,
+    cep,
+    address,
+    complement,
+    number,
+    neighborhood,
+    city,
+    defect,
+    usage,
+    visitDate,
+    visitPeriod
+  } = req.body;
+  const transporter = createTransporter();
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: process.env.DESTINATION_EMAIL,
+    // Seu e-mail de destino
+    subject: "Dados do Atendimento Samsung",
+    text: `N\xFAmero de Atendimento: ${idNumber}
+CEP: ${cep}
+Endere\xE7o: ${address}
+Complemento: ${complement}
+N\xFAmero: ${number}
+Bairro: ${neighborhood}
+Cidade: ${city}
+Defeito: ${defect}
+Uso: ${usage}
+Data da Visita: ${visitDate}
+Per\xEDodo da Visita: ${visitPeriod}`
+  };
+  sendEmailWithDelay(transporter, mailOptions, res);
 });
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
